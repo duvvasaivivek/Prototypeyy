@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Gateway Dashboard</title>
+    <!-- Use vanilla CSS for premium design -->
+    <style>
+        :root {
+            --bg-color: #0f1115;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.2);
+        }
+        
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08), transparent 25%);
+        }
+
+        #root {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            background: linear-gradient(to right, #4ade80, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-value {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-shadow: 0 0 20px var(--accent-glow);
+            line-height: 1;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .token-feed {
+            max-height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .token-feed::-webkit-scrollbar {
+            width: 6px;
+        }
+        .token-feed::-webkit-scrollbar-thumb {
+            background: var(--card-border);
+            border-radius: 3px;
+        }
+
+        .token-item {
+            background: rgba(0,0,0,0.2);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #60a5fa;
+            border-left: 3px solid #3b82f6;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-top: 10px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            70% { box-shadow: 0 0 0 10px transparent; }
+            100% { box-shadow: 0 0 0 0 transparent; }
+        }
+        
+        h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #e5e7eb;
+        }
+    </style>
+    <!-- Load React and Recharts via CDN for rapid hackathon dev -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+        function Dashboard() {
+            const [metrics, setMetrics] = useState({
+                status: 'offline',
+                total_protected: 0,
+                chart_data: [],
+                recent_tokens: []
+            });
+
+            const fetchMetrics = async () => {
+                try {
+                    const res = await fetch('/api/v1/metrics');
+                    const data = await res.json();
+                    setMetrics(data);
+                } catch (e) {
+                    console.error("Failed to fetch metrics", e);
+                }
+            };
+
+            useEffect(() => {
+                fetchMetrics();
+                const interval = setInterval(fetchMetrics, 2000);
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <div>
+                    <div className="header">
+                        <h1>Privacy Gateway</h1>
+                        <p>On-Device PII Protection Firewall</p>
+                        <div className="live-indicator">
+                            <div className="dot"></div> Live Monitoring
+                        </div>
+                    </div>
+
+                    <div className="grid">
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                            <div className="stat-label">Total PII Items Protected</div>
+                            <div className="stat-value">{metrics.total_protected}</div>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', marginTop: '10px' }}>
+                                Sensitive items securely tokenized and blocked from remote LLM servers.
+                            </p>
+                        </div>
+
+                        <div className="card">
+                            <h3>Protection by Category</h3>
+                            <div style={{ display: 'flex', alignItems: 'flex-end', height: '200px', width: '100%', gap: '20px', paddingBottom: '20px', borderBottom: '1px solid var(--card-border)' }}>
+                                {metrics.chart_data.length === 0 ? (
+                                    <div style={{ color: 'var(--text-muted)', width: '100%', textAlign: 'center', alignSelf: 'center' }}>No data yet</div>
+                                ) : (
+                                    metrics.chart_data.map((item, index) => {
+                                        const maxCount = Math.max(...metrics.chart_data.map(d => d.count));
+                                        const heightPct = (item.count / maxCount) * 100;
+                                        return (
+                                            <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, height: '100%', justifyContent: 'flex-end' }}>
+                                                <div style={{ color: 'var(--text-main)', marginBottom: '8px', fontWeight: 'bold' }}>{item.count}</div>
+                                                <div style={{ 
+                                                    width: '100%', 
+                                                    height: `${heightPct}%`, 
+                                                    background: COLORS[index % COLORS.length],
+                                                    borderRadius: '6px 6px 0 0',
+                                                    transition: 'height 0.5s ease'
+                                                }}></div>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '10px' }}>{item.name}</div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <h3>Live Token Feed (Secure Vault)</h3>
+                        <div className="token-feed">
+                            {metrics.recent_tokens.length === 0 ? (
+                                <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px' }}>
+                                    No tokens generated yet. Run a demo or perceive a page!
+                                </div>
+                            ) : (
+                                metrics.recent_tokens.map((item, i) => (
+                                    <div key={i} className="token-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span>{item.token}</span>
+                                        <span style={{ 
+                                            background: 'rgba(239, 68, 68, 0.15)', 
+                                            color: '#ef4444', 
+                                            padding: '2px 8px', 
+                                            borderRadius: '4px',
+                                            fontSize: '0.8rem'
+                                        }}>
+                                            Protected: {item.original_value}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Dashboard />);
+    </script>
+</body>
+</html>

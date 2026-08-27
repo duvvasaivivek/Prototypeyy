@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Privacy Gateway Agent",
+  "version": "1.0.0",
+  "description": "On-device privacy-preserving browser agent",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs",
+    "http://127.0.0.1:8000/*"
+  ],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "src/background.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.ts"]
+    }
+  ]
+}
