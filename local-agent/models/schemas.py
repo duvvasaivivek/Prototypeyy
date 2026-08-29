@@ -34,7 +34,6 @@ class Action(BaseModel):
     action: str
     element_id: Optional[str] = None
     value: Optional[str] = None
-    reason: str
     
 class ActionPlan(BaseModel):
     actions: List[Action]

@@ -27,21 +27,18 @@ class MockReasoningProvider(ReasoningProvider):
                     actions.append(Action(
                         action="TYPE_SECURE",
                         element_id=el.id,
-                        value=token_to_use,
-                        reason=f"Fill {el.placeholder or el.attributes.get('name', 'input')}"
+                        value=token_to_use
                     ))
                 elif el.tag == 'button' or el.role == 'button' or (el.tag == 'input' and el.input_type == 'submit'):
                     actions.append(Action(
                         action="CLICK",
-                        element_id=el.id,
-                        reason="Submit the form"
+                        element_id=el.id
                     ))
         
         if not actions:
             # Fallback action
             actions.append(Action(
-                action="WAIT",
-                reason="Nothing obvious to do, waiting for context to change."
+                action="WAIT"
             ))
             
         return ActionPlan(actions=actions)
@@ -65,9 +62,19 @@ class GeminiReasoningProvider(ReasoningProvider):
     def generate_plan(self, context: SanitizedContext, task: str) -> ActionPlan:
         if not self.client:
             print("[Gemini] ERROR: GEMINI_API_KEY not found in environment.")
-            return ActionPlan(actions=[Action(action="WAIT", reason="API Key missing")])
+            return ActionPlan(actions=[Action(action="WAIT")])
             
-        print(f"[Gemini] Asking Gemini 2.5 Flash to plan for: {task}")
+        print(f"[Gemini] Asking Gemini 3.6 Flash to plan for: {task}")
+        
+        # 1. LATENCY OPTIMIZATION: Compact the DOM payload
+        # Strip out structural "junk" tags that have no text, placeholder, role, or input type
+        compact_elements = []
+        for el in context.elements:
+            if el.text or el.placeholder or el.role or el.input_type or el.tag in ['input', 'button', 'a']:
+                compact_elements.append(el)
+        
+        print(f"[Reasoning] Compacted context from {len(context.elements)} down to {len(compact_elements)} elements.")
+        context.elements = compact_elements
         
         # Convert the sanitized Pydantic model to a clean JSON string for the prompt
         context_json = context.json()
@@ -101,11 +108,11 @@ class GeminiReasoningProvider(ReasoningProvider):
             if response.text:
                 plan = ActionPlan.parse_raw(response.text)
                 return plan
-            return ActionPlan(actions=[Action(action="WAIT", reason="Empty response from LLM")])
+            return ActionPlan(actions=[Action(action="WAIT")])
         except Exception as e:
             print(f"[Reasoning] Gemini API Error: {e}")
             print("[Reasoning] Falling back to safe mock plan due to API error.")
-            return ActionPlan(actions=[Action(action="WAIT", reason=f"API Error: {str(e)[:50]}")])
+            return ActionPlan(actions=[Action(action="WAIT")])
 
 # You can swap this with an OpenAI or Gemini implementation
 # Automatically use Gemini if API key is present and valid, otherwise Mock
