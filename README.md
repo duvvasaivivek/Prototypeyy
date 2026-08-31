@@ -14,6 +14,12 @@ The system consists of two main components:
 1. **Chrome Extension (`/extension`)**: A lightweight React-based Chrome extension that seamlessly captures the DOM, extracts visual data, and natively executes Javascript mouse events to bypass anti-bot systems like React Synthetic Events.
 2. **Local Python Gateway (`/local-agent`)**: A fast asynchronous FastAPI backend that acts as the Privacy Firewall. It uses Microsoft Presidio for NLP-based NER (Named Entity Recognition), EasyOCR for visual perception fallbacks, and a Needle2-simulated Outbound Inspector.
 
+## ✨ Key Features
+- **Zero-Trust Boundaries:** Cloud AI only sees semantic tokens (`<EMAIL_TOKEN>`), never the actual raw text.
+- **On-Device NLP:** Microsoft Presidio runs locally to perform Named Entity Recognition.
+- **Anti-Bot Evasion:** Native mouse event simulation circumvents React/Vue synthetic event tracking.
+- **Dynamic OCR Fallback:** AI can interact with purely visual canvas elements by using fallback text matching.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
