@@ -2,11 +2,15 @@ from models.schemas import Action, ActionPlan
 from typing import List, Dict
 
 class LocalValidator:
+    """
+    The LocalValidator is the final layer of the Zero-Trust boundary.
+    It intercepts the AI's ActionPlan before it is sent to the browser.
+    """
     def validate_plan(self, plan: ActionPlan, vault: Dict[str, str]) -> ActionPlan:
         """
-        Validates the proposed actions. 
-        Rejects highly sensitive destructive actions or actions on non-existent elements.
-        Resolves tokens using the vault just before execution.
+        1. Validates that the AI-generated actions are inherently safe.
+        2. Resolves semantic tokens (e.g. <EMAIL_TOKEN_1>) back into real PII 
+           using the local memory vault just-in-time before physical execution.
         """
         validated_actions = []
         for action in plan.actions:

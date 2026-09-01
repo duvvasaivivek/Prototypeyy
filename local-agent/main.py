@@ -97,22 +97,25 @@ async def get_metrics():
 @app.post("/api/v1/perceive")
 async def perceive_dom(dom_state: DOMState):
     """
-    Receives the raw DOM state from the extension.
-    Sanitizes it and returns the sanitized context.
+    Receives the raw DOM state from the Chrome extension.
+    This endpoint acts as the primary entrypoint for the Zero-Trust Gateway.
+    It performs OCR fallbacks on image data and runs the Microsoft Presidio NLP engine 
+    to sanitize PII before it ever touches the cloud AI.
     """
     print(f"Received DOM from {dom_state.url} with {len(dom_state.elements)} elements")
     
-    # 0. OCR Fallback
+    # 0. OCR Fallback: Process any visual canvas elements
     image_data = getattr(dom_state, 'image_data', None)
     if image_data:
         ocr_elements = ocr_engine.extract_elements_from_base64(image_data)
         dom_state.elements.extend(ocr_elements)
         print(f"Merged {len(ocr_elements)} OCR elements into DOM state.")
         
+    # 1. Sanitize: Tokenize sensitive PII using local Presidio NER
     sanitized_context, vault = privacy_engine.sanitize_dom(dom_state)
     
-    # In a real system, we might persist the vault to a secure local DB
-    # For now, we'll just log how many tokens we generated
+    # In a production system, we persist the vault to a secure local DB.
+    # For this SIH prototype, we hold it in local memory.
     print(f"Protected {len(vault)} sensitive items.")
     
     return {
