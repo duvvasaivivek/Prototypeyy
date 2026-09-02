@@ -92,10 +92,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log(`Executing ${action.action} on`, el);
         
         if (action.action === "CLICK") {
-          el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window }));
-          el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
-          el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
-          el.click();
+          simulateClick(el);
         } else if (action.action === "TYPE" || action.action === "TYPE_SECURE") {
           if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
             el.value = action.value || "";

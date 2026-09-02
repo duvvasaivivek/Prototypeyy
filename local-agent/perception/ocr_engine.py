@@ -6,11 +6,15 @@ from typing import List
 from models.schemas import ElementInfo
 
 class OCREngine:
+    """
+    On-Device Visual Perception Fallback
+    Uses EasyOCR to process purely visual canvas elements that lack DOM text.
+    Runs locally on the machine to ensure no image data leaks to the cloud.
+    """
     def __init__(self):
-        # Initialize reader (will download weights on first run)
-        # Using en for english. GPU=True to leverage hardware acceleration if available.
+        # Initialize the EasyOCR reader once in memory for fast inference
         self.reader = easyocr.Reader(['en'], gpu=True)
-        print("[OCR] EasyOCR Engine Initialized (GPU Enabled)")
+        print("[OCR] EasyOCR Engine Initialized (GPU Enabled, High Performance Mode)")
 
     def extract_elements_from_base64(self, base64_img: str) -> List[ElementInfo]:
         """

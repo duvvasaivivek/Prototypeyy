@@ -53,11 +53,15 @@ class GeminiReasoningProvider(ReasoningProvider):
     from the sanitized context.
     """
     def __init__(self):
+        # SIH26171: Using Gemini Flash for ultra-low latency planning
+        print("[Gemini] Initializing remote AI reasoning engine...")
         self.api_key = os.getenv("GEMINI_API_KEY")
         if self.api_key:
             self.client = genai.Client(api_key=self.api_key)
+            print("[Gemini] Engine initialized successfully with secure API Key.")
         else:
             self.client = None
+            print("[Gemini] WARNING: Running in offline/mock mode.")
 
     def generate_plan(self, context: SanitizedContext, task: str) -> ActionPlan:
         if not self.client:
