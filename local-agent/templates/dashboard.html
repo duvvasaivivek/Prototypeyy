@@ -198,7 +198,8 @@
 
             useEffect(() => {
                 fetchMetrics();
-                const interval = setInterval(fetchMetrics, 2000);
+                // Increased polling rate to 1000ms for faster real-time updates
+                const interval = setInterval(fetchMetrics, 1000);
                 return () => clearInterval(interval);
             }, []);
 
@@ -208,7 +209,7 @@
                         <h1>Privacy Gateway</h1>
                         <p>On-Device PII Protection Firewall</p>
                         <div className="live-indicator">
-                            <div className="dot"></div> Live Monitoring
+                            <div className="dot"></div> Live Token Monitoring
                         </div>
                     </div>
 
