@@ -61,5 +61,8 @@ While the local agent is running, you can monitor real-time tokenization and pri
 - **Perception & Execution:** EasyOCR, Native JS MouseEvents
 - **AI Reasoning:** Google Gemini 1.5/2.5 Flash
 
+## ⚠️ Disclaimer
+This is a prototype built for the Smart India Hackathon (SIH26171). It is not intended for production use without further security auditing and integration with production LLM environments.
+
 ---
 *Built with ❤️ for SIH26171 by Team ShatAvaran*
