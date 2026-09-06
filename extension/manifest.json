@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Privacy Gateway Agent",
-  "version": "1.0.0",
-  "description": "On-device privacy-preserving browser agent",
+  "version": "1.0.1",
+  "description": "Zero-Trust Privacy Firewall for browser agents.",
   "permissions": [
     "activeTab",
     "scripting",
